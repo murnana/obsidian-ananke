@@ -1,0 +1,30 @@
+name: Test Dev Container
+run-name: Test Dev Container by @${{ github.actor }}
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-dev-container:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run inside Dev Container
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: |
+            npm install
+            npm run build
