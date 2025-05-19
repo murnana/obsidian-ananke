@@ -12,9 +12,9 @@
 	"author": "Murnana",
 	"license": "MIT",
 	"devDependencies": {
-		"@types/node": "^22.15.17",
-		"@typescript-eslint/eslint-plugin": "8.32.0",
-		"@typescript-eslint/parser": "8.32.0",
+		"@types/node": "^22.15.19",
+		"@typescript-eslint/eslint-plugin": "8.32.1",
+		"@typescript-eslint/parser": "8.32.1",
 		"builtin-modules": "5.0.0",
 		"esbuild": "0.25.4",
 		"obsidian": "latest",
