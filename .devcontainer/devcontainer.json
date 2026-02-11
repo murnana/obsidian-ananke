@@ -7,8 +7,8 @@
 	"name": "Obsidian Ananke",
 
 	// ベースとなる Docker イメージ
-	// Microsoft 公式の TypeScript + Node.js 22 が入った開発用イメージを使います
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+	// Microsoft 公式の TypeScript + Node.js 24 が入った開発用イメージを使います
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:24",
 
 	// コンテナに追加でインストールする機能（ツール）
 	"features": {
@@ -34,7 +34,9 @@
 				// プロジェクト内の TypeScript を使う（グローバル版ではなく）
 				"typescript.tsdk": "node_modules/typescript/lib",
 				// 「ワークスペースの TypeScript を使いますか？」と聞いてくれる
-				"typescript.enablePromptUseWorkspaceTsdk": true
+				"typescript.enablePromptUseWorkspaceTsdk": true,
+				"claudeCode.allowDangerouslySkipPermissions": true,
+				"claudeCode.usePythonEnvironment": false
 			},
 			// 自動でインストールされる VS Code 拡張機能
 			"extensions": [
@@ -42,21 +44,17 @@
 				"dbaeumer.vscode-eslint",
 				// Prettier — コードフォーマッター
 				"esbenp.prettier-vscode",
-				// TypeScript の最新機能を使えるようにする
-				"ms-vscode.vscode-typescript-next",
 				// EditorConfig — インデントや改行コードを統一する
 				"EditorConfig.EditorConfig",
-				// GitLens — Git の履歴や変更者を見やすくする
-				"eamodio.gitlens",
-				// Git Graph — ブランチの流れをグラフで表示する
-				"mhutchie.git-graph"
+				// Claude Code統合（AI支援開発）
+				"Anthropic.claude-code"
 			]
 		}
 	},
 
 	// コンテナ作成後に自動で実行されるコマンド
 	// npm install で必要なパッケージをインストールします
-	"postCreateCommand": "npm install",
+	"postCreateCommand": "npm install --save-dev",
 
 	// コンテナ外からアクセスしたいポート（ホットリロード用など）
 	// 現在は特に設定なし
@@ -71,5 +69,19 @@
 
 	// コンテナ内で使うユーザー
 	// root ではなく「node」ユーザーで実行します（セキュリティのため）
-	"remoteUser": "node"
+	"remoteUser": "node",
+
+	// Linuxケイパビリティの制限
+	// Linuxケイパビリティ: rootの権限を細かく分割した特殊な権限
+	// 空の配列 = 追加の特権を一切付与しない
+	// これにより、ネットワーク設定変更やシステム時刻変更などの
+	// 危険な操作ができないようになります。
+	"capAdd": [],
+
+	// 権限昇格の禁止
+	// no-new-privileges: プロセスが自分より高い権限を取得することを禁止
+	// 例: setuidプログラム（通常ユーザーがroot権限で実行できるプログラム）を
+	// 実行しても、root権限が得られないようにします。
+	// これにより、コンテナ内での権限昇格攻撃を防ぎます。
+	"securityOpt": ["no-new-privileges=true"]
 }
