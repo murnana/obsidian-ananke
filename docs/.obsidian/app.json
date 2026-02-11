@@ -1,0 +1,9 @@
+{
+  "strictLineBreaks": true,
+  "foldHeading": false,
+  "autoConvertHtml": false,
+  "newLinkFormat": "relative",
+  "alwaysUpdateLinks": true,
+  "useMarkdownLinks": true,
+  "showInlineTitle": false
+}
