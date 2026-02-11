@@ -1,0 +1,5 @@
+# Claude Code local settings (personal preferences, API keys, etc.)
+settings.local.json
+
+# Deprecated personal memory file
+CLAUDE.local.md
