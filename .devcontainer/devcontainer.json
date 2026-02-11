@@ -1,22 +1,75 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+// Obsidian プラグイン開発用の Dev Container 設定ファイル
+// Dev Container とは、Docker コンテナの中に開発環境を丸ごと構築する仕組みです。
+// これにより、誰でも同じ環境で開発を始められます。
+// 参考: https://github.com/obsidianmd/obsidian-sample-plugin
 {
-	"name": "Node.js & TypeScript",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+	// このコンテナの表示名（VS Code の左下などに表示されます）
+	"name": "Obsidian Ananke",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	// ベースとなる Docker イメージ
+	// Microsoft 公式の TypeScript + Node.js 22 が入った開発用イメージを使います
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:22",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	// コンテナに追加でインストールする機能（ツール）
+	"features": {
+		// Claude Code — AI によるコーディング支援ツール
+		"ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+		// GitHub CLI（gh コマンド）— リリース作業や PR 操作に使います
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "npm install"
+	// VS Code 固有の設定
+	"customizations": {
+		"vscode": {
+			// エディタの設定
+			"settings": {
+				// ファイル保存時に自動フォーマットする
+				"editor.formatOnSave": true,
+				// フォーマッターとして ESLint を使う
+				"editor.defaultFormatter": "dbaeumer.vscode-eslint",
+				// 保存時に ESLint の自動修正を実行する
+				"editor.codeActionsOnSave": {
+					"source.fixAll.eslint": "explicit"
+				},
+				// プロジェクト内の TypeScript を使う（グローバル版ではなく）
+				"typescript.tsdk": "node_modules/typescript/lib",
+				// 「ワークスペースの TypeScript を使いますか？」と聞いてくれる
+				"typescript.enablePromptUseWorkspaceTsdk": true
+			},
+			// 自動でインストールされる VS Code 拡張機能
+			"extensions": [
+				// ESLint — コードの問題を検出・修正する
+				"dbaeumer.vscode-eslint",
+				// Prettier — コードフォーマッター
+				"esbenp.prettier-vscode",
+				// TypeScript の最新機能を使えるようにする
+				"ms-vscode.vscode-typescript-next",
+				// EditorConfig — インデントや改行コードを統一する
+				"EditorConfig.EditorConfig",
+				// GitLens — Git の履歴や変更者を見やすくする
+				"eamodio.gitlens",
+				// Git Graph — ブランチの流れをグラフで表示する
+				"mhutchie.git-graph"
+			]
+		}
+	},
 
-	// Configure tool-specific properties.
-	// "customizations": {},
+	// コンテナ作成後に自動で実行されるコマンド
+	// npm install で必要なパッケージをインストールします
+	"postCreateCommand": "npm install",
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	// コンテナ外からアクセスしたいポート（ホットリロード用など）
+	// 現在は特に設定なし
+	"forwardPorts": [],
+
+	// ボリュームマウントの設定
+	// npm のキャッシュを永続化して、コンテナを再作成しても
+	// パッケージのダウンロードが速くなるようにします
+	"mounts": [
+		"source=obsidian-plugin-dev-npm-cache,target=/home/node/.npm,type=volume"
+	],
+
+	// コンテナ内で使うユーザー
+	// root ではなく「node」ユーザーで実行します（セキュリティのため）
+	"remoteUser": "node"
 }
