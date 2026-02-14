@@ -43,3 +43,12 @@ esbuild bundles `src/main.ts` → `main.js` (CommonJS, ES2018 target). External 
 - `tsconfig.json` uses `baseUrl: ./src` for imports
 - Strict TypeScript: `noImplicitAny` and `strictNullChecks` enabled
 - The runtime dependency is `i18next`; everything else is dev-only
+
+## Development Plan
+
+Detailed design specifications are in `docs/plan/`:
+
+- `overview.md` — Vision, TaskChute adaptation, glossary, daily workflow, design principles
+- `data-model.md` — Folder structure, file formats (Markdown + CSV), TypeScript interfaces, edge cases
+- `features.md` — UI wireframes, task actions, timer, routine manager, commands, settings, platform support
+- `phases.md` — 4 implementation phases (Core → Time Tracking → Routines → Analytics) with dependencies and cross-cutting concerns
