@@ -1,6 +1,12 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import { bundle as bundleCSS } from "lightningcss";
+import { writeFileSync, watch } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const banner =
 `/*
@@ -11,6 +17,44 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === "production");
 
+// ─── CSS Configuration ───────────────────────────────────────────────
+const CSS_ENTRY = resolve(__dirname, "src/styles/main.css");
+const CSS_OUTPUT = resolve(__dirname, "styles.css");
+
+// Obsidian 1.8.10 = Electron 34 = Chromium 131; mobile = Safari 16+
+const cssTargets = {
+	chrome: (131 << 16),
+	safari: (16 << 16),
+};
+
+function buildCSS() {
+	try {
+		const { code, map } = bundleCSS({
+			filename: CSS_ENTRY,
+			minify: prod,
+			sourceMap: !prod,
+			targets: cssTargets,
+		});
+
+		let output = code.toString();
+		if (!prod && map) {
+			const base64Map = Buffer.from(map).toString("base64");
+			output += `\n/*# sourceMappingURL=data:application/json;base64,${base64Map} */\n`;
+		}
+		writeFileSync(CSS_OUTPUT, output);
+		console.log(`[css] ${prod ? "Production" : "Dev"} build complete → styles.css`);
+	} catch (err) {
+		console.error("[css] Build error:", err.message);
+		if (err.loc) {
+			console.error(`  at ${err.fileName}:${err.loc.line}:${err.loc.column}`);
+		}
+		if (prod) {
+			throw err;
+		}
+	}
+}
+
+// ─── JS Configuration ────────────────────────────────────────────────
 const context = await esbuild.context({
 	banner: {
 		js: banner,
@@ -41,9 +85,31 @@ const context = await esbuild.context({
 	minify: prod,
 });
 
+// ─── Build Execution ─────────────────────────────────────────────────
+buildCSS();
+
 if (prod) {
 	await context.rebuild();
 	process.exit(0);
 } else {
 	await context.watch();
+
+	const stylesDir = resolve(__dirname, "src/styles");
+	let cssRebuildTimeout;
+	const watcher = watch(stylesDir, { recursive: true }, (eventType, filename) => {
+		if (filename && filename.endsWith(".css")) {
+			clearTimeout(cssRebuildTimeout);
+			cssRebuildTimeout = setTimeout(() => {
+				console.log(`[css] Change detected: ${filename}`);
+				buildCSS();
+			}, 50);
+		}
+	});
+
+	process.on("SIGINT", () => {
+		watcher.close();
+		process.exit(0);
+	});
+
+	console.log("[css] Watching src/styles/ for changes...");
 }
