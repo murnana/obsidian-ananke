@@ -17,9 +17,9 @@
 		"npm": ">=11.0.0"
 	},
 	"devDependencies": {
-		"@types/node": "^25.2.2",
-		"@typescript-eslint/eslint-plugin": "8.54.0",
-		"@typescript-eslint/parser": "8.54.0",
+		"@types/node": "^25.2.3",
+		"@typescript-eslint/eslint-plugin": "8.55.0",
+		"@typescript-eslint/parser": "8.55.0",
 		"builtin-modules": "5.0.0",
 		"esbuild": "0.27.3",
 		"lightningcss": "^1.31.1",
