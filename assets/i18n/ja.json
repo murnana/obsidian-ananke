@@ -1,10 +1,44 @@
 {
-    "settings": {
-        "folders": {
-            "tasks": {
-                "name": "タスクフォルダー",
-                "description": "タスクが溜まっているフォルダー名を設定します"
-            }
-        }
-    }
+	"settings": {
+		"folders": {
+			"tasks": {
+				"name": "タスクフォルダー",
+				"description": "タスクが溜まっているフォルダー名を設定します"
+			}
+		},
+		"defaultStartTime": {
+			"name": "デフォルト開始時刻",
+			"description": "1日のタスク開始時刻（HH:mm形式）"
+		},
+		"showStatusBar": {
+			"name": "ステータスバー表示",
+			"description": "ステータスバーにタスク情報を表示する"
+		}
+	},
+	"commands": {
+		"openDailyPlan": {
+			"name": "今日の予定を開く"
+		},
+		"addTask": {
+			"name": "タスクを追加"
+		}
+	},
+	"views": {
+		"dailyPlan": {
+			"title": "デイリープラン",
+			"today": "今日",
+			"projectedEnd": "予想終了",
+			"totalTasks": "タスク数",
+			"totalTime": "合計時間",
+			"taskNamePlaceholder": "タスク名",
+			"durationPlaceholder": "見積時間（分）",
+			"sectionPlaceholder": "セクション（任意）",
+			"categoryPlaceholder": "カテゴリ（任意）",
+			"addTask": "追加",
+			"deleteTask": "削除"
+		}
+	},
+	"ribbonIcon": {
+		"tooltip": "Ananke: 今日の予定"
+	}
 }

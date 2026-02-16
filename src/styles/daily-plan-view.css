@@ -1,0 +1,172 @@
+/* Daily Plan View Styles */
+
+.ananke-daily-plan-view {
+	padding: 1rem;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	overflow-y: auto;
+}
+
+/* Header - Date Navigation */
+.ananke-header {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem;
+	border-bottom: 2px solid var(--background-modifier-border);
+}
+
+.ananke-date {
+	flex: 1;
+	text-align: center;
+	font-weight: 600;
+	font-size: 1.1rem;
+}
+
+.ananke-header button {
+	padding: 0.25rem 0.75rem;
+	border-radius: 0.25rem;
+	background: var(--interactive-normal);
+	border: 1px solid var(--background-modifier-border);
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.ananke-header button:hover {
+	background: var(--interactive-hover);
+}
+
+/* Summary Information */
+.ananke-summary {
+	display: flex;
+	gap: 1rem;
+	padding: 0.5rem;
+	background: var(--background-secondary);
+	border-radius: 0.25rem;
+	font-size: 0.9rem;
+}
+
+/* Task List */
+.ananke-task-list {
+	flex: 1;
+	overflow-y: auto;
+}
+
+/* Section */
+.ananke-section {
+	margin-bottom: 1.5rem;
+}
+
+.ananke-section-header {
+	font-size: 0.9rem;
+	color: var(--text-muted);
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+}
+
+/* Task Row */
+.ananke-task-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem;
+	border-radius: 0.25rem;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.ananke-task-row:hover {
+	background: var(--background-modifier-hover);
+}
+
+.ananke-task-status {
+	font-size: 1.2rem;
+	width: 1.5rem;
+	text-align: center;
+}
+
+.ananke-task-time {
+	font-family: var(--font-monospace);
+	font-size: 0.9rem;
+	color: var(--text-muted);
+	width: 3rem;
+}
+
+.ananke-task-name {
+	flex: 1;
+	font-weight: 500;
+}
+
+.ananke-task-duration {
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	width: 3rem;
+	text-align: right;
+}
+
+/* Task Actions */
+.ananke-task-actions {
+	display: flex;
+	gap: 0.25rem;
+	opacity: 0;
+	transition: opacity 0.2s;
+}
+
+.ananke-task-row:hover .ananke-task-actions {
+	opacity: 1;
+}
+
+.ananke-task-actions button {
+	padding: 0.25rem 0.5rem;
+	font-size: 0.85rem;
+	border-radius: 0.25rem;
+	background: var(--interactive-normal);
+	border: 1px solid var(--background-modifier-border);
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.ananke-task-actions button:hover {
+	background: var(--interactive-hover);
+}
+
+/* Add Task Form */
+.ananke-add-task {
+	border-top: 2px solid var(--background-modifier-border);
+	padding-top: 1rem;
+}
+
+.ananke-add-task input {
+	margin-right: 0.5rem;
+	margin-bottom: 0.5rem;
+	padding: 0.5rem;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 0.25rem;
+	background: var(--background-primary);
+	color: var(--text-normal);
+}
+
+.ananke-add-task input[type="text"] {
+	min-width: 10rem;
+}
+
+.ananke-add-task input[type="number"] {
+	width: 5rem;
+}
+
+.ananke-add-task button {
+	padding: 0.5rem 1rem;
+	border-radius: 0.25rem;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border: none;
+	cursor: pointer;
+	font-weight: 500;
+	transition: background 0.2s;
+}
+
+.ananke-add-task button:hover {
+	background: var(--interactive-accent-hover);
+}

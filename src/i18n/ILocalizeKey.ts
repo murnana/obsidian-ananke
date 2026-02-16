@@ -3,14 +3,48 @@
  * This interface should match the structure of your translation JSON files.
  */
 interface LocalizeEntity {
-    settings: {
-        folders: {
-            tasks: {
-                name: string,
-                description: string
-            }
-        }
-    }
+	settings: {
+		folders: {
+			tasks: {
+				name: string;
+				description: string;
+			}
+		};
+		defaultStartTime: {
+			name: string;
+			description: string;
+		};
+		showStatusBar: {
+			name: string;
+			description: string;
+		};
+	};
+	commands: {
+		openDailyPlan: {
+			name: string;
+		};
+		addTask: {
+			name: string;
+		};
+	};
+	views: {
+		dailyPlan: {
+			title: string;
+			today: string;
+			projectedEnd: string;
+			totalTasks: string;
+			totalTime: string;
+			taskNamePlaceholder: string;
+			durationPlaceholder: string;
+			sectionPlaceholder: string;
+			categoryPlaceholder: string;
+			addTask: string;
+			deleteTask: string;
+		};
+	};
+	ribbonIcon: {
+		tooltip: string;
+	};
 }
 
 /**

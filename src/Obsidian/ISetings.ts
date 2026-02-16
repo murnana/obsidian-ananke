@@ -2,5 +2,7 @@
  * Obsidian's Settings
  */
 export interface ISettings {
-    taskFolder: string
+	taskFolder: string;
+	defaultStartTime: string;
+	showStatusBar: boolean;
 }

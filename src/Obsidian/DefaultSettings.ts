@@ -4,5 +4,7 @@ import { ISettings } from "./ISetings"
  * Default Obsidian's Settings
  */
 export const DEFAULT_SETTINGS: ISettings = {
-    taskFolder: 'ananke-tasks'
+	taskFolder: 'ananke-tasks',
+	defaultStartTime: '07:00',
+	showStatusBar: true
 }
