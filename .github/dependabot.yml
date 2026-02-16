@@ -1,25 +1,117 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# =============================================================================
+# Dependabot 設定ファイル
+# =============================================================================
+#
+# Dependabot は、依存関係の更新を自動的に検出し、プルリクエストを作成します。
+# これにより、セキュリティパッチや新機能を簡単に取り込むことができます。
+#
+# 対象:
+#   1. npm パッケージ（devDependencies と dependencies）
+#   2. GitHub Actions ワークフロー
+#
+# 更新頻度:
+#   - 毎週月曜日に自動チェック
+#   - 最大5件のプルリクエストを同時に開きます
+#
+# 詳細:
+#   https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# =============================================================================
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # ---------------------------------------------------------------------------
+  # npm パッケージの自動更新
+  # ---------------------------------------------------------------------------
+  # package.json と package-lock.json を監視し、更新可能なパッケージがある場合は
+  # プルリクエストを作成します。
+  #
+  # 対象パッケージ:
+  #   - dependencies: i18next
+  #   - devDependencies: TypeScript, esbuild, Lightning CSS, ESLint, 型定義など
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "saturday"
+      time: "09:00"
       timezone: "Asia/Tokyo"
+
+    # プルリクエストのアサイン先
     assignees:
       - "murnana"
+
+    # 同時に開くプルリクエストの最大数
+    open-pull-requests-limit: 5
+
+    # プルリクエストに付けるラベル
+    labels:
+      - "dependencies"
+      - "npm"
+
+    # コミットメッセージのプレフィックス
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+    # パッケージグループ化
+    # 複数のパッケージを1つのPRにまとめることで、レビュー負荷を軽減
     groups:
-      npm-dependencies:
+      # 開発ツールをまとめて更新
+      development-dependencies:
         patterns:
-          - "*"
+          - "@types/*"
+          - "@typescript-eslint/*"
+          - "eslint*"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # ビルドツールをまとめて更新
+      build-tools:
+        patterns:
+          - "esbuild"
+          - "lightningcss"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions の自動更新
+  # ---------------------------------------------------------------------------
+  # .github/workflows/ 内のワークフローファイルで使用している
+  # GitHub Actions のバージョンを監視し、更新可能な場合はプルリクエストを作成します。
+  #
+  # 対象:
+  #   - actions/checkout
+  #   - actions/setup-node
+  #   - github/codeql-action
+  #   - softprops/action-gh-release
+  #   - devcontainers/ci
+  #   など、すべてのアクション
+  # ---------------------------------------------------------------------------
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "saturday"
+      time: "09:00"
       timezone: "Asia/Tokyo"
+
+    # プルリクエストのアサイン先
     assignees:
       - "murnana"
+
+    # 同時に開くプルリクエストの最大数
+    open-pull-requests-limit: 5
+
+    # プルリクエストに付けるラベル
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+    # コミットメッセージのプレフィックス
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"

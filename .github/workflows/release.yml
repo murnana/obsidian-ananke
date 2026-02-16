@@ -1,0 +1,152 @@
+# =============================================================================
+# リリース自動化ワークフロー
+# =============================================================================
+#
+# このワークフローは、バージョンタグがプッシュされたときに自動的に
+# GitHub Releaseを作成し、Obsidianプラグインの配布ファイルをアップロードします。
+#
+# 実行タイミング:
+#   - バージョンタグ (v*.*.*) がプッシュされたとき（例: v0.1.0, v1.2.3）
+#
+# 実行内容:
+#   1. TypeScript型チェックと本番ビルド（main.js, styles.css）
+#   2. バージョン整合性チェック（package.json, manifest.json, versions.json）
+#   3. GitHub Releaseの作成
+#   4. 配布ファイルのアップロード（main.js, manifest.json, styles.css）
+#
+# セキュリティ対策:
+#   - アクションはできる限り SHA ピン留めを使用しています。
+#   - permissions は最小権限の原則に従い、必要最低限のみ付与しています。
+#   - バージョン整合性チェックにより、誤ったバージョンのリリースを防ぎます。
+#
+# 注意:
+#   - このワークフローは npm version コマンドでバージョンを更新し、
+#     タグをプッシュすることで起動されます。
+#   - 例: npm version patch && git push && git push --tags
+# =============================================================================
+
+# ワークフロー名（GitHub Actions タブに表示される名前）
+name: Release Plugin
+
+# 実行時の表示名
+run-name: Release ${{ github.ref_name }} by @${{ github.actor }}
+
+# -----------------------------------------------------------------------------
+# トリガー条件
+# -----------------------------------------------------------------------------
+# - push (tags): v で始まるタグがプッシュされたときに実行
+#   例: v0.1.0, v1.2.3, v1.0.0-beta.1
+# -----------------------------------------------------------------------------
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# -----------------------------------------------------------------------------
+# ワークフローレベルの権限
+# -----------------------------------------------------------------------------
+# デフォルトですべての権限を無効化し、ジョブごとに必要な権限のみ付与します。
+# -----------------------------------------------------------------------------
+permissions: {}
+
+# =============================================================================
+# ジョブ定義
+# =============================================================================
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    # このジョブに必要な権限
+    permissions:
+      contents: write  # GitHub Releaseの作成とアセットのアップロード
+
+    steps:
+      # -----------------------------------------------------------------------
+      # ステップ 1: リポジトリのチェックアウト
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # -----------------------------------------------------------------------
+      # ステップ 2: Dev Container 内でビルドを実行
+      # -----------------------------------------------------------------------
+      # devcontainers/ci アクションが .devcontainer/devcontainer.json を読み取り、
+      # コンテナをビルド・起動した上で、runCmd に指定したコマンドを実行します。
+      # ローカル開発環境と完全に同一の環境でビルドが実行されます。
+      #
+      # 実行内容:
+      #   1. npm install — 依存パッケージをインストール
+      #   2. npm run build — TypeScript の型チェックと本番ビルド
+      #
+      # 出力: main.js, styles.css
+      # -----------------------------------------------------------------------
+      - name: Build in Dev Container
+        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3
+        with:
+          runCmd: |
+            npm install
+            npm run build
+
+      # -----------------------------------------------------------------------
+      # ステップ 3: バージョン整合性チェック
+      # -----------------------------------------------------------------------
+      # package.json, manifest.json, versions.json のバージョンが一致しているかを
+      # 確認します。不一致の場合はワークフローを失敗させます。
+      # -----------------------------------------------------------------------
+      - name: Check version consistency
+        run: |
+          # タグからバージョン番号を抽出（v1.2.3 → 1.2.3）
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "Tag version: $TAG_VERSION"
+
+          # package.json のバージョンを取得
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "package.json version: $PACKAGE_VERSION"
+
+          # manifest.json のバージョンを取得
+          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+          echo "manifest.json version: $MANIFEST_VERSION"
+
+          # versions.json に該当バージョンが存在するかチェック
+          VERSIONS_CHECK=$(node -p "Object.keys(require('./versions.json')).includes('$TAG_VERSION')")
+          echo "versions.json contains $TAG_VERSION: $VERSIONS_CHECK"
+
+          # バージョンの整合性をチェック
+          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "❌ Error: Tag version ($TAG_VERSION) does not match package.json ($PACKAGE_VERSION)"
+            exit 1
+          fi
+
+          if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "❌ Error: Tag version ($TAG_VERSION) does not match manifest.json ($MANIFEST_VERSION)"
+            exit 1
+          fi
+
+          if [ "$VERSIONS_CHECK" != "true" ]; then
+            echo "❌ Error: Version $TAG_VERSION not found in versions.json"
+            exit 1
+          fi
+
+          echo "✅ All version checks passed"
+
+      # -----------------------------------------------------------------------
+      # ステップ 4: GitHub Release の作成とアセットのアップロード
+      # -----------------------------------------------------------------------
+      # GitHub Release を作成し、Obsidian プラグインの配布ファイルをアップロードします。
+      # アップロードするファイル:
+      #   - main.js       : プラグインのメインコード
+      #   - manifest.json : プラグインのメタデータ
+      #   - styles.css    : プラグインのスタイルシート
+      # -----------------------------------------------------------------------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048 # v2.2.0
+        with:
+          files: |
+            main.js
+            manifest.json
+            styles.css
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
