@@ -7,14 +7,16 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"test": "NODE_PATH=/opt/node22/lib/node_modules:src node tests/run-tests.js",
+		"test:watch": "NODE_PATH=/opt/node22/lib/node_modules:src node --watch tests/run-tests.js"
 	},
 	"keywords": [],
 	"author": "Murnana",
 	"license": "MIT",
 	"engines": {
-		"node": ">=24.0.0",
-		"npm": ">=11.0.0"
+		"node": ">=22.0.0",
+		"npm": ">=10.0.0"
 	},
 	"devDependencies": {
 		"@types/node": "^25.4.0",

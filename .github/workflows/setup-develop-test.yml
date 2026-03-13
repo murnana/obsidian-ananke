@@ -74,7 +74,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       # -----------------------------------------------------------------------
-      # ステップ 2: Dev Container 内でビルドを実行
+      # ステップ 2: Dev Container 内でビルドとテストを実行
       # -----------------------------------------------------------------------
       # devcontainers/ci アクションが .devcontainer/devcontainer.json を読み取り、
       # コンテナをビルド・起動した上で、runCmd に指定したコマンドを実行します。
@@ -82,6 +82,7 @@ jobs:
       # 実行内容:
       #   1. npm install — 依存パッケージをインストール
       #   2. npm run build — TypeScript の型チェックと本番ビルド
+      #   3. npm test — Vitest による単体テスト
       # -----------------------------------------------------------------------
       - name: Run inside Dev Container
         uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3
@@ -89,3 +90,4 @@ jobs:
           runCmd: |
             npm install
             npm run build
+            npm test
