@@ -1,17 +1,18 @@
 'use strict';
 /**
- * Test runner for obsidian-ananke unit tests.
+ * obsidian-ananke 単体テストランナー
  *
- * Uses the globally installed ts-node and Node.js built-in node:test runner.
- * No npm install required for vitest or other test frameworks.
+ * グローバルインストール済みの ts-node と Node.js 組み込みの node:test を使用します。
+ * vitest などのテストフレームワークは npm install 不要です。
  *
- * Requires: NODE_PATH=/opt/node22/lib/node_modules:src (set in package.json script)
- *   /opt/node22/lib/node_modules → makes 'ts-node' findable
- *   src                         → resolves path aliases (Models/*, Parsers/*, etc.)
+ * 前提条件（package.json の test スクリプトで設定済み）:
+ *   NODE_PATH=/opt/node22/lib/node_modules:src
+ *     /opt/node22/lib/node_modules → ts-node をモジュールとして require できるようにする
+ *     src                         → パスエイリアス（Models/*, Parsers/* など）を解決する
  *
- * Module redirects handled here:
- *   'obsidian' → tests/mocks/obsidian.ts  (Obsidian API mock)
- *   'vitest'   → tests/mocks/vitest.ts    (vitest API shim using node:test)
+ * このファイルで処理するモジュールのリダイレクト:
+ *   'obsidian' → tests/mocks/obsidian.ts  （Obsidian API モック）
+ *   'vitest'   → tests/mocks/vitest.ts    （node:test ベースの vitest 互換シム）
  */
 
 const Module = require('module');
@@ -21,23 +22,25 @@ const fs = require('fs');
 const projectRoot = path.resolve(__dirname, '..');
 
 // ---------------------------------------------------------------------------
-// Step 1: Register ts-node for TypeScript compilation (CommonJS mode)
+// ステップ 1: TypeScript コンパイル用に ts-node を登録（CommonJS モード）
 // ---------------------------------------------------------------------------
 require('ts-node').register({
 	project: path.resolve(projectRoot, 'tsconfig.test.json'),
-	transpileOnly: true,
+	transpileOnly: true, // 型チェックをスキップしてトランスパイルのみ実行
 });
 
 // ---------------------------------------------------------------------------
-// Step 2: Patch Module._resolveFilename for obsidian and vitest mocks only
-//         (path aliases like Parsers/* are resolved via NODE_PATH=src)
+// ステップ 2: obsidian・vitest のモック差し替えのため Module._resolveFilename を上書き
+//             パスエイリアス（Parsers/* など）は NODE_PATH=src で解決済みなので不要
 // ---------------------------------------------------------------------------
 const originalResolve = Module._resolveFilename;
 
 Module._resolveFilename = function (request, parent, isMain, options) {
+	// 'obsidian' → Obsidian API モックファイルにリダイレクト
 	if (request === 'obsidian') {
 		return path.resolve(projectRoot, 'tests', 'mocks', 'obsidian.ts');
 	}
+	// 'vitest' → node:test ベースの互換シムにリダイレクト
 	if (request === 'vitest') {
 		return path.resolve(projectRoot, 'tests', 'mocks', 'vitest.ts');
 	}
@@ -45,8 +48,13 @@ Module._resolveFilename = function (request, parent, isMain, options) {
 };
 
 // ---------------------------------------------------------------------------
-// Step 3: Discover and load test files (node:test registers them on load)
+// ステップ 3: テストファイルを検索して読み込む
+//             require() 時に node:test へ describe/it が自動登録される
 // ---------------------------------------------------------------------------
+/**
+ * 指定ディレクトリ以下の *.test.ts ファイルを再帰的に収集する。
+ * mocks/ ディレクトリはスキップする。
+ */
 function findTestFiles(dir) {
 	const files = [];
 	let entries;
