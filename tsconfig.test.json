@@ -1,0 +1,17 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"isolatedModules": false,
+		"inlineSourceMap": false,
+		"inlineSources": false,
+		"paths": {
+			"obsidian": ["../tests/mocks/obsidian"]
+		}
+	},
+	"include": [
+		"src/**/*.ts",
+		"tests/**/*.ts"
+	]
+}
