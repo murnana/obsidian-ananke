@@ -8,6 +8,7 @@
 # 対象:
 #   1. npm パッケージ（devDependencies と dependencies）
 #   2. GitHub Actions ワークフロー
+#   3. Docker イメージ（.devcontainer/Dockerfile）
 #
 # 更新頻度:
 #   - 毎週月曜日に自動チェック
@@ -34,48 +35,17 @@ updates:
     schedule:
       interval: "weekly"
       day: "saturday"
-      time: "09:00"
       timezone: "Asia/Tokyo"
 
     # プルリクエストのアサイン先
     assignees:
       - "murnana"
 
-    # 同時に開くプルリクエストの最大数
-    open-pull-requests-limit: 5
-
-    # プルリクエストに付けるラベル
-    labels:
-      - "dependencies"
-      - "npm"
-
-    # コミットメッセージのプレフィックス
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-
-    # パッケージグループ化
-    # 複数のパッケージを1つのPRにまとめることで、レビュー負荷を軽減
-    groups:
-      # 開発ツールをまとめて更新
-      development-dependencies:
-        patterns:
-          - "@types/*"
-          - "@typescript-eslint/*"
-          - "eslint*"
-          - "typescript"
-        update-types:
-          - "minor"
-          - "patch"
-
-      # ビルドツールをまとめて更新
-      build-tools:
-        patterns:
-          - "esbuild"
-          - "lightningcss"
-        update-types:
-          - "minor"
-          - "patch"
+    # クールダウン期間
+    # パッケージ公開から 7 日経過するまで更新 PR を作成しない
+    # (.npmrc の min-release-age=7 と整合)
+    cooldown:
+      default-days: 7
 
   # ---------------------------------------------------------------------------
   # GitHub Actions の自動更新
@@ -96,22 +66,35 @@ updates:
     schedule:
       interval: "weekly"
       day: "saturday"
-      time: "09:00"
       timezone: "Asia/Tokyo"
 
     # プルリクエストのアサイン先
     assignees:
       - "murnana"
 
-    # 同時に開くプルリクエストの最大数
-    open-pull-requests-limit: 5
+    # クールダウン期間
+    # アクション公開から 7 日経過するまで更新 PR を作成しない
+    cooldown:
+      default-days: 7
 
-    # プルリクエストに付けるラベル
-    labels:
-      - "dependencies"
-      - "github-actions"
+  # ---------------------------------------------------------------------------
+  # Docker イメージの自動更新
+  # ---------------------------------------------------------------------------
+  # .devcontainer/Dockerfile のベースイメージ (FROM) を監視し、
+  # 更新可能なバージョンがある場合はプルリクエストを作成します。
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/.devcontainer"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      timezone: "Asia/Tokyo"
 
-    # コミットメッセージのプレフィックス
-    commit-message:
-      prefix: "chore(ci)"
-      include: "scope"
+    # プルリクエストのアサイン先
+    assignees:
+      - "murnana"
+
+    # クールダウン期間
+    # イメージ公開から 7 日経過するまで更新 PR を作成しない
+    cooldown:
+      default-days: 7
