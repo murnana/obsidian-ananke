@@ -65,7 +65,6 @@ export class DailyPlanParser {
 					tasks.push(task);
 					order++;
 				} catch (error) {
-					console.error(`Failed to parse task at line ${i + 1}: ${line}`, error);
 					throw new Error(`Invalid task row at line ${i + 1}: ${error instanceof Error ? error.message : String(error)}`);
 				}
 			}
