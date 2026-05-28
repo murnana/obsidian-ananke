@@ -1,5 +1,5 @@
 # Node.jsのDockerイメージを取得する：
-FROM node:24-alpine
+FROM node:26-alpine
 
 # npmの更新
 RUN npm install -g npm@11.11.0
