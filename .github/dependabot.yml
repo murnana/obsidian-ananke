@@ -41,6 +41,15 @@ updates:
     assignees:
       - "murnana"
 
+    # 依存関係のグループ化
+    # peer dependency でバージョンを揃える必要があるパッケージは
+    # 1つのグループにまとめ、同一 PR・同一バージョンで更新する。
+    # (@typescript-eslint/eslint-plugin は parser に同一バージョンを要求するため)
+    groups:
+      typescript-eslint:
+        patterns:
+          - "@typescript-eslint/*"
+
     # クールダウン期間
     # パッケージ公開から 7 日経過するまで更新 PR を作成しない
     # (.npmrc の min-release-age=7 と整合)
