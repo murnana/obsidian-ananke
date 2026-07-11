@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Ananke is an Obsidian plugin for task estimation, recording, and reviewing. Built with TypeScript and bundled with esbuild. The primary target audience is Japanese-speaking users (Japanese is the fallback locale).
+Ananke is a personal task management plugin for Obsidian, built around quick capture into an inbox and per-project task organization. Each task is a single Markdown note (one task = one note) living alongside the user's other notes. Built with TypeScript and bundled with esbuild. The primary target audience is Japanese-speaking users (Japanese is the fallback locale).
 
 ## Build Commands
 
@@ -46,9 +46,9 @@ esbuild bundles `src/main.ts` → `main.js` (CommonJS, ES2018 target). External 
 
 ## Development Plan
 
-Detailed design specifications are in `docs/plan/`:
+Requirements and the implementation plan are in `docs/plan/` (written in Japanese):
 
-- `overview.md` — Vision, TaskChute adaptation, glossary, daily workflow, design principles
-- `data-model.md` — Folder structure, file formats (Markdown + CSV), TypeScript interfaces, edge cases
-- `features.md` — UI wireframes, task actions, timer, routine manager, commands, settings, platform support
-- `phases.md` — 4 implementation phases (Core → Time Tracking → Routines → Analytics) with dependencies and cross-cutting concerns
+- `requirements.md` — Why the project was restarted, concept (inbox capture + per-project management), data model (one task = one note with frontmatter), MVP scope, and explicit non-goals (timers, time logs, estimation analytics, routines)
+- `implementation-plan.md` — Phases A (MVP: capture modal, task note service, inbox/project view) → B (checkbox promotion, due dates) → C (archive, review), plus which existing code is kept vs. deleted
+
+The earlier TaskChute-based design (daily plans, time tracking, routines) was abandoned in 2026-07; its documents were deleted and the Phase 1 implementation (`DailyPlanView` and related services/parsers) is slated for removal when the new implementation replaces it.
