@@ -1,17 +1,22 @@
 name: Node.js build
 
-permissions:
-    contents: read
-
 on:
     push:
         branches: ['**']
     pull_request:
         branches: ['**']
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
     build:
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
 
         strategy:
             matrix:
