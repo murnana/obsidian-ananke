@@ -8,7 +8,7 @@ General Obsidian plugin conventions (manifest rules, release basics, security/UX
 
 ## Current state
 
-This repo (Ananke, `murnana/obsidian-ananke`) was reset to the unmodified `obsidian-sample-plugin` template. Every identifier is still a placeholder: `manifest.json` (`id: sample-plugin`, author Obsidian), the `package.json` name, README, LICENSE (0-BSD, Dynalist), and the classes `MyPlugin` / `MyPluginSettings` / `SampleSettingTab` / `SampleModal`. Both files in `src/` are template demo code (dice ribbon icon, status bar text, sample commands, global click `Notice`, 5-minute `console.log` interval, `mySetting`), not product behavior.
+This repo (Ananke, `murnana/obsidian-ananke`) was reset to the `obsidian-sample-plugin` template and is being re-initialized. `manifest.json` (`id: ananke`) and `package.json` already carry Ananke values; README and LICENSE (0-BSD, Dynalist) are still template placeholders. `src/main.ts` is only an empty `AnankePlugin` class (no commands, settings, or UI) because the `obsidianmd` lint rules reject the template demo code (`sample-names`, `no-sample-code`); add features from scratch.
 
 The pre-reset implementation and its Japanese design docs are in history at `d89d78c` (e.g. `git show d89d78c:docs/plan/requirements.md`). Its manifest id was `murnana-ananke`; no version was ever tagged or released, so the id is still free to choose.
 
