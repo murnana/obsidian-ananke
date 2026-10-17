@@ -48,6 +48,12 @@ updates:
         patterns:
           - "@typescript-eslint/*"
 
+    # TypeScript 7 以降は typescript-eslint が未対応 (peer が <6.1.0) のため、
+    # 対応版が出るまでメジャー更新を無視する
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+
     # クールダウン期間
     # パッケージ公開から 7 日経過するまで更新 PR を作成しない
     # (.npmrc の min-release-age=7 と整合)
