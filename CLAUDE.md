@@ -2,53 +2,34 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+General Obsidian plugin conventions (manifest rules, release basics, security/UX policy, lifecycle and cleanup patterns) live in AGENTS.md:
 
-Ananke is a personal task management plugin for Obsidian, built around quick capture into an inbox and per-project task organization. Each task is a single Markdown note (one task = one note) living alongside the user's other notes. Built with TypeScript and bundled with esbuild. The primary target audience is Japanese-speaking users (Japanese is the fallback locale).
+@AGENTS.md
 
-## Build Commands
+## Current state
 
-- `npm run dev` — Start esbuild in watch mode with inline source maps
-- `npm run build` — TypeScript type-check (`tsc -noEmit -skipLibCheck`) then production bundle (minified, no source maps)
-- `npm version patch|minor|major` — Bump version in package.json, manifest.json, and versions.json
+This repo (Ananke, `murnana/obsidian-ananke`) was reset to the `obsidian-sample-plugin` template and is being re-initialized. `manifest.json` (`id: ananke`) and `package.json` already carry Ananke values; README and LICENSE (0-BSD, Dynalist) are still template placeholders. `src/main.ts` is only an empty `AnankePlugin` class (no commands, settings, or UI) because the `obsidianmd` lint rules reject the template demo code (`sample-names`, `no-sample-code`); add features from scratch.
 
-There is no test runner configured. Linting uses ESLint with TypeScript rules but there is no dedicated `lint` script; run `npx eslint src/` directly.
+The pre-reset implementation and its Japanese design docs are in history at `d89d78c` (e.g. `git show d89d78c:docs/plan/requirements.md`). Its manifest id was `murnana-ananke`; no version was ever tagged or released, so the id is still free to choose.
 
-## Architecture
+## Commands and verification
 
-**Entry point:** `src/main.ts` re-exports the main plugin class.
+- There is no test runner. `npm run build` (`tsc -noEmit -skipLibCheck`, then a minified bundle) and `npm run lint` are the only checks, and exactly what CI runs (`.github/workflows/lint.yml`: `npm ci`, build, lint on Node 20/22/24 for every push and PR).
+- Type-check only: `npx tsc -noEmit -skipLibCheck`. Lint one file: `npx eslint src/settings.ts`.
+- `npm run dev` is esbuild watch mode and never exits; run it in the background, or use `npm run build` for a one-off bundle.
+- API reference: the TSDoc comments in `node_modules/obsidian/obsidian.d.ts` (installed as `obsidian@latest`).
 
-**`src/Obsidian/`** — Core plugin code:
-- `Ananke.ts` — Main plugin class extending Obsidian's `Plugin`. Handles lifecycle (`onload`/`onunload`), initializes i18n, registers commands, ribbon icons, settings tab, and event listeners.
-- `ISetings.ts` / `DefaultSettings.ts` — Settings interface and defaults. Current setting: `taskFolder` (default: `'ananke-tasks'`).
-- `AnankeSettingTab.ts` — Settings UI tab using Obsidian's `PluginSettingTab`.
-- `SampleModal.ts` — Placeholder modal dialog.
+## Build and lint details
 
-**`src/i18n/`** — Internationalization:
-- `Localize.ts` — Wrapper around `i18next`. Static `Initialize()` factory loads translations from `assets/i18n/` JSON files. Fallback language is Japanese (`ja`).
-- `ILocalizeKey.ts` — Type-safe localization keys using a `DotKeys` utility type that converts nested object paths to dot-notation strings (e.g., `settings.folders.tasks.name`).
+- esbuild bundles `src/main.ts` into a root-level `main.js` (CJS, ES2021). `obsidian`, `electron`, `@codemirror/*`, `@lezer/*`, and Node builtins stay external because Obsidian provides them at runtime; any other dependency is bundled into `main.js`. Root `styles.css` ships as-is; there is no CSS build step.
+- `tsconfig.json` is `strict` plus `noUncheckedIndexedAccess` (indexed reads are `T | undefined`), `noImplicitReturns`, and `isolatedModules`, and only includes `src/**/*.ts`.
+- ESLint is a flat config (`eslint.config.mts`) on `eslint-plugin-obsidianmd`'s recommended rules, type-aware via `projectService`, with browser globals; it also lints `manifest.json`. Type-aware parsing only resolves files in the tsconfig `include` plus `allowDefaultProject`, so new TS files outside `src/` (e.g. a `tests/` dir) must be added to one of those. Root `.mjs` scripts are excluded via `globalIgnores`.
+- No formatter is configured; match `.editorconfig` (tabs, single quotes, LF) and the trailing commas in existing code.
 
-**`assets/i18n/`** — Translation JSON files (currently `ja.json`).
+## Releasing
 
-## Build System
+1. Hand-edit `minAppVersion` in `manifest.json` if needed.
+2. `npm version patch|minor|major`: `version-bump.mjs` copies the new version into `manifest.json` and adds a `versions.json` entry; `.npmrc` makes the tag unprefixed (`1.0.1`, not `v1.0.1`).
+3. Push the commit and tag. Any tag push runs `.github/workflows/release.yml`, which builds, attests provenance, and creates a **draft** release with `main.js`, `manifest.json`, `styles.css`; publish it manually on GitHub. Nothing checks that the tag matches `manifest.json`, so always tag via `npm version`.
 
-esbuild bundles `src/main.ts` → `main.js` (CommonJS, ES2018 target). External modules: `obsidian`, `electron`, `@codemirror/*`, `@lezer/*`, and Node builtins. Distribution requires three files: `main.js`, `manifest.json`, `styles.css`.
-
-## Conventions
-
-- **Indentation:** Tabs, 4-character width (see `.editorconfig`)
-- **Line endings:** LF
-- Interfaces are prefixed with `I` (e.g., `ISettings`)
-- Source is organized by domain: `/Obsidian` for plugin code, `/i18n` for localization
-- `tsconfig.json` uses `baseUrl: ./src` for imports
-- Strict TypeScript: `noImplicitAny` and `strictNullChecks` enabled
-- The runtime dependency is `i18next`; everything else is dev-only
-
-## Development Plan
-
-Requirements and the implementation plan are in `docs/plan/` (written in Japanese):
-
-- `requirements.md` — Why the project was restarted, concept (inbox capture + per-project management), data model (one task = one note with frontmatter), MVP scope, and explicit non-goals (timers, time logs, estimation analytics, routines)
-- `implementation-plan.md` — Phases A (MVP: capture modal, task note service, inbox/project view) → B (checkbox promotion, due dates) → C (archive, review), plus which existing code is kept vs. deleted
-
-The earlier TaskChute-based design (daily plans, time tracking, routines) was abandoned in 2026-07; its documents were deleted and the Phase 1 implementation (`DailyPlanView` and related services/parsers) is slated for removal when the new implementation replaces it.
+`develop` is the default branch and PR target; `main` is outdated.

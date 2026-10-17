@@ -1,152 +1,52 @@
-# =============================================================================
-# リリース自動化ワークフロー
-# =============================================================================
-#
-# このワークフローは、バージョンタグがプッシュされたときに自動的に
-# GitHub Releaseを作成し、Obsidianプラグインの配布ファイルをアップロードします。
-#
-# 実行タイミング:
-#   - バージョンタグ (v*.*.*) がプッシュされたとき（例: v0.1.0, v1.2.3）
-#
-# 実行内容:
-#   1. TypeScript型チェックと本番ビルド（main.js, styles.css）
-#   2. バージョン整合性チェック（package.json, manifest.json, versions.json）
-#   3. GitHub Releaseの作成
-#   4. 配布ファイルのアップロード（main.js, manifest.json, styles.css）
-#
-# セキュリティ対策:
-#   - アクションはできる限り SHA ピン留めを使用しています。
-#   - permissions は最小権限の原則に従い、必要最低限のみ付与しています。
-#   - バージョン整合性チェックにより、誤ったバージョンのリリースを防ぎます。
-#
-# 注意:
-#   - このワークフローは npm version コマンドでバージョンを更新し、
-#     タグをプッシュすることで起動されます。
-#   - 例: npm version patch && git push && git push --tags
-# =============================================================================
+name: Release Obsidian plugin
 
-# ワークフロー名（GitHub Actions タブに表示される名前）
-name: Release Plugin
-
-# 実行時の表示名
-run-name: Release ${{ github.ref_name }} by @${{ github.actor }}
-
-# -----------------------------------------------------------------------------
-# トリガー条件
-# -----------------------------------------------------------------------------
-# - push (tags): v で始まるタグがプッシュされたときに実行
-#   例: v0.1.0, v1.2.3, v1.0.0-beta.1
-# -----------------------------------------------------------------------------
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+    push:
+        tags:
+            - '[0-9]+.[0-9]+.[0-9]+'
 
-# -----------------------------------------------------------------------------
-# ワークフローレベルの権限
-# -----------------------------------------------------------------------------
-# デフォルトですべての権限を無効化し、ジョブごとに必要な権限のみ付与します。
-# -----------------------------------------------------------------------------
 permissions: {}
 
-# =============================================================================
-# ジョブ定義
-# =============================================================================
 jobs:
-  release:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-    # このジョブに必要な権限
-    permissions:
-      contents: write  # GitHub Releaseの作成とアセットのアップロード
+            - name: Use Node.js
+              uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 24
+                  cache: 'npm'
 
-    steps:
-      # -----------------------------------------------------------------------
-      # ステップ 1: リポジトリのチェックアウト
-      # -----------------------------------------------------------------------
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - name: Build plugin
+              run: |
+                  npm ci
+                  npm run build
 
-      # -----------------------------------------------------------------------
-      # ステップ 2: Dev Container 内でビルドを実行
-      # -----------------------------------------------------------------------
-      # devcontainers/ci アクションが .devcontainer/devcontainer.json を読み取り、
-      # コンテナをビルド・起動した上で、runCmd に指定したコマンドを実行します。
-      # ローカル開発環境と完全に同一の環境でビルドが実行されます。
-      #
-      # 実行内容:
-      #   1. npm install — 依存パッケージをインストール
-      #   2. npm run build — TypeScript の型チェックと本番ビルド
-      #
-      # 出力: main.js, styles.css
-      # -----------------------------------------------------------------------
-      - name: Build in Dev Container
-        uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca # v0.3
-        with:
-          runCmd: |
-            npm install
-            npm run build
+            - name: Check for optional styles
+              id: styles
+              run: |
+                  [ -f styles.css ] && echo "exists=true" >> "$GITHUB_OUTPUT" || echo "exists=false" >> "$GITHUB_OUTPUT"
 
-      # -----------------------------------------------------------------------
-      # ステップ 3: バージョン整合性チェック
-      # -----------------------------------------------------------------------
-      # package.json, manifest.json, versions.json のバージョンが一致しているかを
-      # 確認します。不一致の場合はワークフローを失敗させます。
-      # -----------------------------------------------------------------------
-      - name: Check version consistency
-        run: |
-          # タグからバージョン番号を抽出（v1.2.3 → 1.2.3）
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          echo "Tag version: $TAG_VERSION"
+            - name: Attest build provenance
+              uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+              with:
+                  subject-path: |
+                      main.js
+                      ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
 
-          # package.json のバージョンを取得
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          echo "package.json version: $PACKAGE_VERSION"
+            - name: Create release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  tag="${GITHUB_REF#refs/tags/}"
 
-          # manifest.json のバージョンを取得
-          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
-          echo "manifest.json version: $MANIFEST_VERSION"
-
-          # versions.json に該当バージョンが存在するかチェック
-          VERSIONS_CHECK=$(node -p "Object.keys(require('./versions.json')).includes('$TAG_VERSION')")
-          echo "versions.json contains $TAG_VERSION: $VERSIONS_CHECK"
-
-          # バージョンの整合性をチェック
-          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
-            echo "❌ Error: Tag version ($TAG_VERSION) does not match package.json ($PACKAGE_VERSION)"
-            exit 1
-          fi
-
-          if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
-            echo "❌ Error: Tag version ($TAG_VERSION) does not match manifest.json ($MANIFEST_VERSION)"
-            exit 1
-          fi
-
-          if [ "$VERSIONS_CHECK" != "true" ]; then
-            echo "❌ Error: Version $TAG_VERSION not found in versions.json"
-            exit 1
-          fi
-
-          echo "✅ All version checks passed"
-
-      # -----------------------------------------------------------------------
-      # ステップ 4: GitHub Release の作成とアセットのアップロード
-      # -----------------------------------------------------------------------
-      # GitHub Release を作成し、Obsidian プラグインの配布ファイルをアップロードします。
-      # アップロードするファイル:
-      #   - main.js       : プラグインのメインコード
-      #   - manifest.json : プラグインのメタデータ
-      #   - styles.css    : プラグインのスタイルシート
-      # -----------------------------------------------------------------------
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          files: |
-            main.js
-            manifest.json
-            styles.css
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  gh release create "$tag" \
+                    --title="$tag" \
+                    --draft \
+                    main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}

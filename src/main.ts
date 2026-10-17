@@ -1,4 +1,7 @@
-import { Ananke } from "./Obsidian/Ananke"
+import { Plugin } from 'obsidian';
 
-// Output plugin
-export default Ananke;
+export default class AnankePlugin extends Plugin {
+	onload() {}
+
+	onunload() {}
+}

@@ -1,10 +1,9 @@
 {
-	"id": "murnana-ananke",
+	"id": "ananke",
 	"name": "Ananke",
 	"version": "0.0.1",
-	"minAppVersion": "1.8.10",
-	"description": "Obisidian plugin for estimating, recording, and reviewing tasks.",
-	"author": "Murnana",
-	"authorUrl": "https://github.com/murnana/obsidian-ananke",
+	"minAppVersion": "0.14.8",
+	"description": "タスクの見積もり、記録、確認を行うためのObisidianプラグイン",
+	"author": "murnana",
 	"isDesktopOnly": false
 }
