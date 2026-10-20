@@ -2,7 +2,7 @@
 	"id": "ananke",
 	"name": "Ananke",
 	"version": "0.0.1",
-	"minAppVersion": "0.14.8",
+	"minAppVersion": "1.9.10",
 	"description": "タスクの見積もり、記録、確認を行うためのObisidianプラグイン",
 	"author": "murnana",
 	"isDesktopOnly": false
